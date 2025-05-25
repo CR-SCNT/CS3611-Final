@@ -1,0 +1,8 @@
+ffmpeg-python
+opencv-python
+numpy
+pycryptodome 
+psutil
+matplotlib
+scikit-video
+python-vlc
