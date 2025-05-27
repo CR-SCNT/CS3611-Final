@@ -43,7 +43,7 @@ def recv_and_send(client_socket, client_address):
             
             bitrate = extract_bitrate(segment_name)
             if bitrate is None:
-                print(f"Could not extract bitrate from segment name: {segment_name}")
+                print(f"[!] Could not extract bitrate from segment name: {segment_name}")
                 client_socket.sendall(b"Invalid segment name format.")
                 continue
             
