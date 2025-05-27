@@ -62,7 +62,7 @@ def recv_and_send(client_socket, client_address):
                     segment_name=segment_name,
                     send_time=sendtime,
                     bitrate=bitrate,
-                    client_id=str(client_address[0]) + ':' + str(client_address[1])
+                    client_addr=str(client_address[0]) + ':' + str(client_address[1])
                 )
             except Exception as log_error:
                 print(f"[Logger] Failed to log: {log_error}")
@@ -76,7 +76,7 @@ def recv_and_send(client_socket, client_address):
                 segment_name=segment_name if 'segment_name' in locals() else 'unknown',
                 send_time=datetime.now(),
                 bitrate=0,
-                client_id=str(client_address[0]) + ':' + str(client_address[1])
+                client_addr=str(client_address[0]) + ':' + str(client_address[1])
             )
         except Exception as log_error:
             print(f"[Logger] Failed to log: {log_error}")     
@@ -88,7 +88,7 @@ def recv_and_send(client_socket, client_address):
                 segment_name=segment_name if 'segment_name' in locals() else 'unknown',
                 send_time=datetime.now(),
                 bitrate=0,
-                client_id=str(client_address[0]) + ':' + str(client_address[1])
+                client_addr=str(client_address[0]) + ':' + str(client_address[1])
             )
         except Exception as log_error:
             print(f"[Logger] Failed to log: {log_error}")
