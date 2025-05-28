@@ -86,7 +86,6 @@ def batch_segment_videos(input_dir, output_dir, duration, profiles):
     
     for video_file in glob.glob(os.path.join(input_dir, "*.mp4")):
         video_name = os.path.splitext(os.path.basename(video_file))[0]
-        input_path = os.path.join(input_dir, video_file)
         print(f"[Segmenter] Processing video: {video_name}")
         for res_label, res_size, bitrate in profiles:
             segment_video(res_label, res_size, bitrate, input_dir=input_dir, output_dir=output_dir, video_name=video_name, duration=duration)

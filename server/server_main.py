@@ -17,16 +17,17 @@ def check_ffmpeg():
         sys.exit(1)
 
 def check_and_segment():
-    
+    segements_already_exist = True
     for video in glob.glob(os.path.join(INPUT_DIR, "*.mp4")):
         video_name = os.path.splitext(os.path.basename(video))[0]
         segment_path = os.path.join(SEGMENT_DIR, video_name)
         
         if not os.path.exists(segment_path) or not os.listdir(segment_path):
             print(f"[!] Segments for video '{video_name}' do not exist, starting segmentation.")
+            segements_already_exist = False
             for res_label, res_size, bitrate in PROFILES:
                 segmenter.segment_video(
-                    res_label=res_label,
+                    resolution_label=res_label,
                     resolution_size=res_size,
                     bitrate_kbps=bitrate,
                     input_dir=INPUT_DIR,
@@ -34,6 +35,8 @@ def check_and_segment():
                     video_name=video_name,
                     duration=DURATION
                 )
+    if segements_already_exist:
+        print("[√] Segments already exist, skipping segmentation.")
 
 def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
