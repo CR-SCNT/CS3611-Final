@@ -15,7 +15,23 @@ PROFILES = [
 def ensure_dir(path):
     os.makedirs(path, exist_ok=True)
 
-def segment_video(resolution_label, resolution_size, bitrate_kbps, input_dir=INPUT_DIR, output_dir=OUTPUT_DIR, video_name=VIDEO_NAME, duration=DURATION):
+def segment_video(resolution_label, resolution_size, bitrate_kbps, video_name, input_dir, output_dir, duration):
+    
+    '''
+    Segments a video into multiple parts based on the specified resolution and bitrate.
+    Args:
+        resolution_label (str): Label for the resolution (e.g., "480p", "720p", "1080p").
+        resolution_size (str): Resolution size in the format "widthxheight" (e.g., "854x480").
+        bitrate_kbps (int): Bitrate in kbps for the video stream.
+        video_name (str): Name of the video file without extension.
+        input_dir (str): Directory containing the input video file.
+        output_dir (str): Directory where the segmented files will be saved.
+        duration (int): Duration of each segment in seconds.
+        
+    Returns:
+        None
+    
+    '''
     
     print(f"[Segmenter] Processing: {resolution_label}, {bitrate_kbps}k")
     input_path = os.path.join(input_dir, f"{video_name}.mp4")
@@ -56,7 +72,18 @@ def segment_video(resolution_label, resolution_size, bitrate_kbps, input_dir=INP
         print("[Segmenter] ffmpeg error:")
         print(e.stderr)
 
-def batch_segment_videos(input_dir, output_dir, duration=5, profiles = PROFILES):
+def batch_segment_videos(input_dir=INPUT_DIR, output_dir=OUTPUT_DIR, duration=5, profiles=PROFILES):
+    '''
+    Segments all videos in the input directory into multiple parts based on the specified profiles.
+    Args:
+        input_dir (str): Directory containing the input video files. Default is "data/raw".
+        output_dir (str): Directory where the segmented files will be saved. Default is "data/segments".
+        duration (int): Duration of each segment in seconds. Default is 5 seconds.
+        profiles (list): List of tuples containing resolution label, resolution size, and bitrate.
+    Returns:
+        None
+    '''
+    
     for video_file in glob.glob(os.path.join(input_dir, "*.mp4")):
         video_name = os.path.splitext(os.path.basename(video_file))[0]
         input_path = os.path.join(input_dir, video_file)
