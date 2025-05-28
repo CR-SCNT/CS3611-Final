@@ -10,7 +10,7 @@ logger = Logger()
 
 HOST = '0.0.0.0'
 PORT = 9000
-SEGMENT_DIR = 'data/segments'  # 视频片段目录
+SEGMENT_DIR = 'data/segments'
 BUFFER_SIZE = 4096
 
 def parse_segment_filename(filename):
@@ -36,35 +36,35 @@ def parse_segment_filename(filename):
         return video_name, resolution, bitrate_kbps, segment_index
     return None, None, 0, -1
 
-def recv_and_send(client_socket, client_address):
+def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
     
     print(f"[+] Connection established with {client_address}")
     client_socket.settimeout(30)
     
     try:
         while True:
-            data = client_socket.recv(BUFFER_SIZE)
+            data = client_socket.recv(buffer_size)
             if not data:
                 break
             segment_name = data.decode().strip()
-            segment_path = f"{SEGMENT_DIR}/{segment_name}"
+            parsed_data = parse_segment_filename(segment_name)
+            
+            if parsed_data[0] is None:
+                print(f"[!] Invalid segment name format: {segment_name}")
+                client_socket.sendall(b"Invalid segment name format.")
+                continue
+            segment_path = os.path.join(segment_dir, parsed_data[0], segment_name)
             
             if not os.path.exists(segment_path):
                 print(f"[!] Segment {segment_name} not found.")
                 client_socket.sendall(b"Segment not found.")
                 continue
             
-            parsed_data = parse_segment_filename(segment_name)
-            if parsed_data[0] is None:
-                print(f"[!] Invalid segment name format: {segment_name}")
-                client_socket.sendall(b"Invalid segment name format.")
-                continue
-            
             sendtime = datetime.now()
             total_size = os.path.getsize(segment_path)
             with open(segment_path, 'rb') as f:
                 while True:
-                    file_data = f.read(BUFFER_SIZE)
+                    file_data = f.read(buffer_size)
                     if not file_data:
                         break
                     client_socket.sendall(file_data)
@@ -120,9 +120,12 @@ def start_server():
         try:
             while True:
                 client_socket, client_address = server_socket.accept()
-                executor.submit(recv_and_send, client_socket, client_address)
+                executor.submit(recv_and_send, client_socket, client_address, BUFFER_SIZE, SEGMENT_DIR)
         except KeyboardInterrupt:
             print("\n[!] Server shutting down by keyboard interrupt.")
         finally:
             server_socket.close()
             print("[!] Server socket closed.")
+            
+if __name__ == "__main__":
+    start_server()
