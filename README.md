@@ -11,7 +11,6 @@
 - psutil
 - matplotlib
 - scikit-video
-- opencv
 - VLC
 
 提供了一个 `requirements.txt` 文件来帮助你安装所需的 Python 库。你可以使用以下命令来安装：
