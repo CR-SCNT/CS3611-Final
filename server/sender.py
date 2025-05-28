@@ -3,6 +3,7 @@ import os
 import concurrent.futures
 from datetime import datetime
 import threading
+import re
 from server.logger import Logger
 
 logger = Logger()
@@ -15,10 +16,10 @@ BUFFER_SIZE = 4096
 def extract_bitrate(segment_name):
     # segment name format "xxxx-<resolution>-<bitrate>k-<segmentID>.ts"
     try:
-        parts = segment_name.split('-')
-        for part in parts:
-            if part.endswith('k'):
-                return int(part[:-1])
+        match = re.search(r'\d{3,5}k(?=-\d+\.ts$)', segment_name)
+        if match:
+            return int(match.group(1))
+        return 0
     except:
         pass
     return None
@@ -43,7 +44,7 @@ def recv_and_send(client_socket, client_address):
             
             bitrate = extract_bitrate(segment_name)
             if bitrate is None:
-                print(f"Could not extract bitrate from segment name: {segment_name}")
+                print(f"[!] Could not extract bitrate from segment name: {segment_name}")
                 client_socket.sendall(b"Invalid segment name format.")
                 continue
             
@@ -88,7 +89,7 @@ def recv_and_send(client_socket, client_address):
                 segment_name=segment_name if 'segment_name' in locals() else 'unknown',
                 send_time=datetime.now(),
                 bitrate=0,
-                client_id=str(client_address[0]) + ':' + str(client_address[1])
+                client_addr=str(client_address[0]) + ':' + str(client_address[1])
             )
         except Exception as log_error:
             print(f"[Logger] Failed to log: {log_error}")
