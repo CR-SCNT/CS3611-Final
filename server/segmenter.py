@@ -72,7 +72,7 @@ def segment_video(resolution_label, resolution_size, bitrate_kbps, video_name, i
         print("[Segmenter] ffmpeg error:")
         print(e.stderr)
 
-def batch_segment_videos(input_dir=INPUT_DIR, output_dir=OUTPUT_DIR, duration=5, profiles=PROFILES):
+def batch_segment_videos(input_dir, output_dir, duration, profiles):
     '''
     Segments all videos in the input directory into multiple parts based on the specified profiles.
     Args:
@@ -100,7 +100,7 @@ def main():
     # for res_label, res_size, bitrate in PROFILES:
     #     segment_video(res_label, res_size, bitrate)
     # print(f"[Segmenter] All Segments are saved at {os.path.join(OUTPUT_DIR, VIDEO_NAME)}")
-    batch_segment_videos(INPUT_DIR, OUTPUT_DIR)
+    batch_segment_videos(INPUT_DIR, OUTPUT_DIR, DURATION, PROFILES)
 
 if __name__ == "__main__":
     main()
