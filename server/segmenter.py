@@ -3,8 +3,8 @@ import subprocess
 import glob
 
 VIDEO_NAME = "test"
-INPUT_DIR = "data\\raw"
-OUTPUT_DIR = "data\\segments"
+INPUT_DIR = os.path.join("data", "raw")
+OUTPUT_DIR = os.path.join("data", "segments")
 DURATION = 5
 PROFILES = [
     ("480p", "854x480", 1500),
@@ -95,7 +95,7 @@ def batch_segment_videos(input_dir, output_dir, duration, profiles):
 
 
 def main():
-    input_path= os.path.join(INPUT_DIR, f"{VIDEO_NAME}.mp4")
+    # input_path= os.path.join(INPUT_DIR, f"{VIDEO_NAME}.mp4")
     # print(f"[Segmenter] Input video: {input_path}")
     # for res_label, res_size, bitrate in PROFILES:
     #     segment_video(res_label, res_size, bitrate)

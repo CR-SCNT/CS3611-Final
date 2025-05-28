@@ -2,7 +2,6 @@ import socket
 import os
 import concurrent.futures
 from datetime import datetime
-import threading
 import re
 from logger import Logger
 
@@ -109,7 +108,7 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
         client_socket.close()
         print(f"[-] Connection closed with {client_address}")
 
-def start_server():
+def test_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((HOST, PORT))
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -128,4 +127,4 @@ def start_server():
             print("[!] Server socket closed.")
             
 if __name__ == "__main__":
-    start_server()
+    test_server()
