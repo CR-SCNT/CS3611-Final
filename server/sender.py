@@ -4,7 +4,7 @@ import concurrent.futures
 from datetime import datetime
 import threading
 import re
-from server.logger import Logger
+from logger import Logger
 
 logger = Logger()
 
