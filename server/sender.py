@@ -13,16 +13,28 @@ PORT = 9000
 SEGMENT_DIR = 'data/segments'  # 视频片段目录
 BUFFER_SIZE = 4096
 
-def extract_bitrate(segment_name):
-    # segment name format "xxxx-<resolution>-<bitrate>k-<segmentID>.ts"
-    try:
-        match = re.search(r'\d{3,5}k(?=-\d+\.ts$)', segment_name)
-        if match:
-            return int(match.group(1))
-        return 0
-    except:
-        pass
-    return None
+def parse_segment_filename(filename):
+    """
+    Extracts video name, resolution, bitrate, and segment index from the filename.
+    
+    Filename format: `<videoName>-<resolution>-<bitrate>k-<segmentIndex>.ts`
+    
+    Returns a tuple (video_name, resolution, bitrate_kbps, segment_index). 
+    If the filename does not match the expected format, returns (None, None, 0, -1).
+    
+    Example:
+    - Input: "example-1080p-2500k-0001.ts"
+    - Output: ("example", "1080p", 2500, 1)
+    """
+    base = os.path.basename(filename)
+    match = re.match(r'^([a-zA-Z0-9_]+)-(\d+p)-(\d+)k-(\d+)\.ts$', base)
+    if match:
+        video_name = match.group(1)
+        resolution = match.group(2)
+        bitrate_kbps = int(match.group(3))
+        segment_index = int(match.group(4))
+        return video_name, resolution, bitrate_kbps, segment_index
+    return None, None, 0, -1
 
 def recv_and_send(client_socket, client_address):
     
@@ -42,9 +54,9 @@ def recv_and_send(client_socket, client_address):
                 client_socket.sendall(b"Segment not found.")
                 continue
             
-            bitrate = extract_bitrate(segment_name)
-            if bitrate is None:
-                print(f"[!] Could not extract bitrate from segment name: {segment_name}")
+            parsed_data = parse_segment_filename(segment_name)
+            if parsed_data[0] is None:
+                print(f"[!] Invalid segment name format: {segment_name}")
                 client_socket.sendall(b"Invalid segment name format.")
                 continue
             
@@ -62,7 +74,7 @@ def recv_and_send(client_socket, client_address):
                     role="server",
                     segment_name=segment_name,
                     send_time=sendtime,
-                    bitrate=bitrate,
+                    bitrate=parsed_data[2],
                     client_addr=str(client_address[0]) + ':' + str(client_address[1])
                 )
             except Exception as log_error:
