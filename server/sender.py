@@ -3,6 +3,7 @@ import os
 import concurrent.futures
 from datetime import datetime
 import threading
+import re
 from server.logger import Logger
 
 logger = Logger()
@@ -15,10 +16,10 @@ BUFFER_SIZE = 4096
 def extract_bitrate(segment_name):
     # segment name format "xxxx-<resolution>-<bitrate>k-<segmentID>.ts"
     try:
-        parts = segment_name.split('-')
-        for part in parts:
-            if part.endswith('k'):
-                return int(part[:-1])
+        match = re.search(r'\d{3,5}k(?=-\d+\.ts$)', segment_name)
+        if match:
+            return int(match.group(1))
+        return 0
     except:
         pass
     return None
