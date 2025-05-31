@@ -46,4 +46,10 @@ sudo apt install vlc
 
 6.1更新：更新了client这一块，目前会依次播放四种画质的视频，中间有难以忽视的间隙，而且若其中一个slider剪出了失败的ts文件(部分测试视频中出现问题)会产生大量垃圾信息。
 且没有日志模块，日志和可视化界面这些的后面会做进去。大概这样。
-
+你也应当在main分支中创建以下文件夹：
+```data
+data/raw
+data/segments
+data/download
+data/logs
+```
