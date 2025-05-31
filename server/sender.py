@@ -47,7 +47,29 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
                 break
             segment_name = data.decode().strip()
             parsed_data = parse_segment_filename(segment_name)
+            '''
+            #if not data == b"Successfully Received Data Chunk":
+                if parsed_data[0] is None:
+                    print(f"[!] Invalid segment name format: {segment_name}")
+                    client_socket.sendall(b"Invalid segment name format.")
+                    continue
+                segment_path = os.path.join(segment_dir, parsed_data[0], segment_name)
             
+                if not os.path.exists(segment_path):
+                    print(f"[!] Segment {segment_name} not found.")
+                    client_socket.sendall(b"Segment not found.")
+                    continue
+            
+                sendtime = datetime.now()
+                total_size = os.path.getsize(segment_path)
+                with open(segment_path, 'rb') as f:
+                    while True:
+                        file_data = f.read(buffer_size)
+                        if not file_data:
+                            break
+                        client_socket.sendall(file_data)
+                    print("Segment sending completed")
+            '''
             if parsed_data[0] is None:
                 print(f"[!] Invalid segment name format: {segment_name}")
                 client_socket.sendall(b"Invalid segment name format.")
@@ -67,7 +89,21 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
                     if not file_data:
                         break
                     client_socket.sendall(file_data)
-    
+                    print("send filedata")
+                    try:
+                        ack = client_socket.recv(3)
+                        print("ACK")
+                        if ack != b"ACK":
+                            raise Exception("ACK missing")
+                        else:
+                            print("ACK received")
+                    except Exception as e:
+                        print(e)
+                    finally:
+                        pass
+                print("Segment sending completed")
+                client_socket.sendall(b"END")
+            
             try:   
                 logger.log(
                     role="server",

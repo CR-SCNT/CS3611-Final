@@ -60,9 +60,9 @@ def segment_video(resolution_label, resolution_size, bitrate_kbps, video_name, i
     ]
 
     try:
-        result = subprocess.run(
+        result = subprocess.Popen(
             cmd,
-            check=True,
+            #check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True  
