@@ -8,9 +8,11 @@ import sys
 from sender import recv_and_send as tcp_communicate
 from config import HOST, PORT, BUFFER_SIZE, SEGMENT_DIR, INPUT_DIR, OUTPUT_DIR, PROFILES, DURATION
 
+video_names = []
+
 def check_ffmpeg():
     try:
-        subprocess.run(['ffmpeg', '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        subprocess.Popen(['ffmpeg', '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print("[√] ffmpeg available.")
     except Exception:
         print("[×] ffmpeg not found. Please install ffmpeg and ensure it is in your PATH.")
@@ -20,6 +22,8 @@ def check_and_segment():
     segements_already_exist = True
     for video in glob.glob(os.path.join(INPUT_DIR, "*.mp4")):
         video_name = os.path.splitext(os.path.basename(video))[0]
+        video_names.append(video_name)
+        print(video_names)
         segment_path = os.path.join(SEGMENT_DIR, video_name)
         
         if not os.path.exists(segment_path) or not os.listdir(segment_path):
@@ -37,6 +41,7 @@ def check_and_segment():
                 )
     if segements_already_exist:
         print("[√] Segments already exist, skipping segmentation.")
+    return video_names
 
 def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,7 +54,12 @@ def start_server():
         try:
             while True:
                 client_socket, client_address = server_socket.accept()
-                executor.submit(tcp_communicate, client_socket, client_address, BUFFER_SIZE, SEGMENT_DIR)
+                names = ""
+                for name in video_names:
+                    names += name
+                    names += " "
+                client_socket.send(names.encode('utf-8'))
+                executor.submit(tcp_communicate, client_socket, client_address, 65536, SEGMENT_DIR)
         except KeyboardInterrupt:
             print("\n[!] Server shutting down by keyboard interrupt.")
         finally:
