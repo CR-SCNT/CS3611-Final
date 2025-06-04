@@ -33,8 +33,11 @@ def start_client():
             receiver.suggest_recv(client_socket, BUFFER_SIZE, videoname, player,["1080p", "2500k"]) 
         except KeyboardInterrupt:
             print("\n[!] Server shutting down by keyboard interrupt.")
+        except Exception as e:
+            print(e)
         finally:
             client_socket.close()
+            break
 
 if __name__ == "__main__":
     start_client()

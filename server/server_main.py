@@ -58,6 +58,10 @@ def start_server():
         try:
             while True:
                 client_socket, client_address = server_socket.accept()
+                with open('./server/aes.key', 'rb') as key:
+                    aes_key = key.read()
+                client_socket.sendall(b"KEY:")
+                client_socket.sendall(aes_key)
                 names = ""
                 for name in video_names:
                     names += name
@@ -71,6 +75,7 @@ def start_server():
             print("[!] Server socket closed.")
             
 if __name__ == "__main__":
+    encryptor.key_generator()
     check_ffmpeg()
     check_and_segment()
     start_server()

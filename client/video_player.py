@@ -1,4 +1,4 @@
-import vlc, os, queue, threading
+import vlc, os, queue, threading, time
 
 
 class Player:
@@ -40,7 +40,7 @@ class Player:
             self.list_player.stop()
             self.activicated = False
 
-'''
+
 if "__main__" == __name__:
-    player = Player()
-'''
+    player = Player(msize=30)
+    player.add_playlist("data/download/MMsWithEminem-1080p-2500k-0000.ts")

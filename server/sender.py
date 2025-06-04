@@ -44,7 +44,6 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
     
     try:
         # Send AES key to client
-        client_socket.sendall(b"KEY:" + aes_key)
         
         while True:
             data = client_socket.recv(buffer_size)
@@ -94,14 +93,10 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
                     if not file_data:
                         break
                     client_socket.sendall(file_data)
-                    print("send filedata")
                     try:
                         ack = client_socket.recv(3)
-                        print("ACK")
                         if ack != b"ACK":
                             raise Exception("ACK missing")
-                        else:
-                            print("ACK received")
                     except Exception as e:
                         print(e)
                     finally:
