@@ -44,7 +44,7 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
     
     try:
         # Send AES key to client
-        client_socket.sendall("KEY:" + aes_key)
+        client_socket.sendall(b"KEY:" + aes_key)
         
         while True:
             data = client_socket.recv(buffer_size)
