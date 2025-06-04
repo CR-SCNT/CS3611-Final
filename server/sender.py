@@ -39,8 +39,13 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
     
     print(f"[+] Connection established with {client_address}")
     client_socket.settimeout(30)
+    with open('./server/aes.key', 'rb') as key:
+        aes_key = key.read()
     
     try:
+        # Send AES key to client
+        client_socket.sendall("KEY:" + aes_key)
+        
         while True:
             data = client_socket.recv(buffer_size)
             if not data:
