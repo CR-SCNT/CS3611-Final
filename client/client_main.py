@@ -9,6 +9,13 @@ def start_client():
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     player = Player(msize=30)
     try:
+        prefix = client_socket.recv(4)
+        if prefix == b'KEY:':
+            key = client_socket.recv(16)
+        with open('./client/aes.key', 'wb') as key_file:
+            key_file.write(key)
+        print("[√] Key received and saved as 'aes.key'.")
+        
         namedata = client_socket.recv(BUFFER_SIZE)
         namedata = str(namedata, encoding='utf-8')
         print(str(namedata))
