@@ -41,6 +41,8 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
     client_socket.settimeout(30)
     
     try:
+        # Send AES key to client
+        
         while True:
             data = client_socket.recv(buffer_size)
             if not data:
@@ -74,7 +76,7 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
                 print(f"[!] Invalid segment name format: {segment_name}")
                 client_socket.sendall(b"Invalid segment name format.")
                 continue
-            segment_path = os.path.join(segment_dir, parsed_data[0], segment_name)
+            segment_path = os.path.join(segment_dir, parsed_data[0], segment_name) + '.aes'
             
             if not os.path.exists(segment_path):
                 print(f"[!] Segment {segment_name} not found.")
@@ -89,14 +91,10 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
                     if not file_data:
                         break
                     client_socket.sendall(file_data)
-                    print("send filedata")
                     try:
                         ack = client_socket.recv(3)
-                        print("ACK")
                         if ack != b"ACK":
                             raise Exception("ACK missing")
-                        else:
-                            print("ACK received")
                     except Exception as e:
                         print(e)
                     finally:

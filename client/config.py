@@ -3,6 +3,7 @@ HOST = '0.0.0.0'
 PORT = 9000
 SEGMENT_DIR = 'data/segments'
 BUFFER_SIZE = 4096
+DOWNLOAD_DIR = 'data/download'
 
 # Configuration settings for video segmentation
 INPUT_DIR = 'data/raw'

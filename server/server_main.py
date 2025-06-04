@@ -5,6 +5,7 @@ import glob
 import concurrent.futures
 import subprocess
 import sys
+import encryptor
 from sender import recv_and_send as tcp_communicate
 from config import HOST, PORT, BUFFER_SIZE, SEGMENT_DIR, INPUT_DIR, OUTPUT_DIR, PROFILES, DURATION
 
@@ -41,6 +42,9 @@ def check_and_segment():
                 )
     if segements_already_exist:
         print("[√] Segments already exist, skipping segmentation.")
+    for video_name in video_names:
+        encryptor.encrypt_segment(video_name)
+        print(f"[√] Encrypted segments for video '{video_name}'.")
     return video_names
 
 def start_server():
@@ -54,12 +58,16 @@ def start_server():
         try:
             while True:
                 client_socket, client_address = server_socket.accept()
+                with open('./server/aes.key', 'rb') as key:
+                    aes_key = key.read()
+                client_socket.sendall(b"KEY:")
+                client_socket.sendall(aes_key)
                 names = ""
                 for name in video_names:
                     names += name
                     names += " "
                 client_socket.send(names.encode('utf-8'))
-                executor.submit(tcp_communicate, client_socket, client_address, 65536, SEGMENT_DIR)
+                executor.submit(tcp_communicate, client_socket, client_address, BUFFER_SIZE, SEGMENT_DIR)
         except KeyboardInterrupt:
             print("\n[!] Server shutting down by keyboard interrupt.")
         finally:
@@ -67,6 +75,7 @@ def start_server():
             print("[!] Server socket closed.")
             
 if __name__ == "__main__":
+    encryptor.key_generator()
     check_ffmpeg()
     check_and_segment()
     start_server()
