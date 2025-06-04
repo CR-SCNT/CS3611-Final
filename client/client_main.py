@@ -5,7 +5,7 @@ from config import HOST, PORT, BUFFER_SIZE, SEGMENT_DIR, INPUT_DIR, OUTPUT_DIR, 
 
 def start_client():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect(("10.180.22.41", PORT))
+    client_socket.connect((HOST, PORT))
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     player = Player(msize=30)
     try:
