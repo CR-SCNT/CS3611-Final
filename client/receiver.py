@@ -1,5 +1,6 @@
 import time
 from video_player import Player
+from config import DOWNLOAD_DIR
 
 def filename_summon(name, resolution, ords):
     return f"{name}-{resolution[0]}-{resolution[1]}-" + str(ords).zfill(4) + ".ts"
@@ -17,9 +18,10 @@ def suggest_recv(client_socket, buffer_size, video_names, videoplayer):
             reso = resolution[od]
             while True:
                 strs = filename_summon(vd, reso, ords)
+                encrypted_strs = strs + ".aes"
                 client_socket.sendall(bytes(strs, encoding="utf8"))
                 time.sleep(2)
-                with open("data/download/" + strs, 'wb') as f:
+                with open(os.path.join(DOWNLOAD_DIR, encrypted_strs), 'wb') as f:
                     write_data = b""
                     data = client_socket.recv(buffer_size)
                     if data == b"Invalid segment name format." or data == b"Segment not found.":
@@ -38,5 +40,5 @@ def suggest_recv(client_socket, buffer_size, video_names, videoplayer):
                             print(f"{len(write_data)}, chunk acquire succeeded")
                         print("Data collect completed")
                         f.write(write_data)
-                        videoplayer.add_playlist("data/download/" + strs)
-                        ords += 1
+                videoplayer.add_playlist(DOWNLOAD_DIR + strs)
+                ords += 1
