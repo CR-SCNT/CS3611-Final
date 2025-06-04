@@ -1,6 +1,5 @@
 import aes
 import os
-from Crypto.Random import get_random_bytes
 from config import DOWNLOAD_DIR
 
 def decrypt_segment(segment_name):
