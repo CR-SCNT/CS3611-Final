@@ -21,7 +21,7 @@ def suggest_recv(client_socket, buffer_size, video_names, videoplayer):
                 encrypted_strs = strs + ".aes"
                 client_socket.sendall(bytes(strs, encoding="utf8"))
                 time.sleep(2)
-                with open(DOWNLOAD_DIR + encrypted_strs, 'wb') as f:
+                with open(os.path.join(DOWNLOAD_DIR, encrypted_strs), 'wb') as f:
                     write_data = b""
                     data = client_socket.recv(buffer_size)
                     if data == b"Invalid segment name format." or data == b"Segment not found.":
