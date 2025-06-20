@@ -1,5 +1,5 @@
 # Configuration settings for the server
-HOST = '0.0.0.0'
+HOST = '127.0.0.1'
 PORT = 9000
 SEGMENT_DIR = 'data/segments'
 BUFFER_SIZE = 4096

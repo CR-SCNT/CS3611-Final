@@ -1,4 +1,5 @@
 import time
+import vlc
 from video_player import Player
 import os, decryptor, aes
 
@@ -7,14 +8,14 @@ from config import DOWNLOAD_DIR
 def filename_summon(name, resolution, ords):
     return f"{name}-{resolution[0]}-{resolution[1]}-" + str(ords).zfill(4) + ".ts"
 
-def suggest_recv(client_socket, buffer_size, video_name, videoplayer, resolution):
+def suggest_recv(client_socket, buffer_size, video_name, resolution, m3u8_filename, last_index):
     # resolution = [["480p", "1000k"], ["720p", "1500k"], ["1080p", "2500k"], ["360p", "500k"]]
     ords = 0
-    while True:
+    while ords <= last_index:
         strs = filename_summon(video_name, resolution, ords)
         encrypted_strs = strs + ".aes"
         client_socket.sendall(bytes(strs, encoding="utf8"))
-        time.sleep(2)
+        time.sleep(1)
         with open(os.path.join(DOWNLOAD_DIR, encrypted_strs), 'wb') as f:
             write_data = b""
             data = client_socket.recv(buffer_size)
@@ -36,9 +37,16 @@ def suggest_recv(client_socket, buffer_size, video_name, videoplayer, resolution
                 print(f"Data collect completed, total length: {len(write_data)}")
                 f.write(write_data)
                 decryptor.decrypt_segment(encrypted_strs)
-            time.sleep(2)
-            videoplayer.add_playlist(DOWNLOAD_DIR + "/" + strs)
+            # time.sleep(2)
+            # videoplayer.add_playlist(DOWNLOAD_DIR + "/" + strs)
+            if ords == 2:
+                instance = vlc.Instance()
+                videoplayer = instance.media_player_new()
+                media = instance.media_new(os.path.join(DOWNLOAD_DIR, m3u8_filename))
+                # videoplayer = vlc.MediaPlayer(os.path.join(DOWNLOAD_DIR, m3u8_filename))
+                videoplayer.set_media(media)
+                videoplayer.play()
             ords += 1
-    while True:
-        time.sleep(1)
-
+    # while True:
+    #     time.sleep(1)
+    return videoplayer

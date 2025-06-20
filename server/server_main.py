@@ -5,11 +5,21 @@ import glob
 import concurrent.futures
 import subprocess
 import sys
+import threading
+import signal
 import encryptor
 from sender import recv_and_send as tcp_communicate
 from config import HOST, PORT, BUFFER_SIZE, SEGMENT_DIR, INPUT_DIR, OUTPUT_DIR, PROFILES, DURATION
 
 video_names = []
+
+shutdown_event = threading.Event()
+
+def signal_handler(sig, frame):
+    print("\n[!] Server shutting down by keyboard interrupt.")
+    shutdown_event.set()
+
+signal.signal(signal.SIGINT, signal_handler)
 
 def check_ffmpeg():
     try:
@@ -52,12 +62,19 @@ def start_server():
     server_socket.bind((HOST, PORT))
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.listen(100)
+    server_socket.settimeout(1.0)
     print(f"[+] Server started on {HOST}:{PORT}")
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         try:
-            while True:
-                client_socket, client_address = server_socket.accept()
+            while not shutdown_event.is_set():
+                try:
+                    client_socket, client_address = server_socket.accept()
+                except socket.timeout:
+                    continue
+                except Exception as e:
+                    print(f"[!] Unexpected error in accept(): {e}")
+                    continue
                 with open('./server/aes.key', 'rb') as key:
                     aes_key = key.read()
                 client_socket.sendall(b"KEY:")
@@ -68,8 +85,8 @@ def start_server():
                     names += " "
                 client_socket.send(names.encode('utf-8'))
                 executor.submit(tcp_communicate, client_socket, client_address, BUFFER_SIZE, SEGMENT_DIR)
-        except KeyboardInterrupt:
-            print("\n[!] Server shutting down by keyboard interrupt.")
+        # except KeyboardInterrupt:
+        #     print("\n[!] Server shutting down by keyboard interrupt.")
         finally:
             server_socket.close()
             print("[!] Server socket closed.")
@@ -79,3 +96,4 @@ if __name__ == "__main__":
     check_ffmpeg()
     check_and_segment()
     start_server()
+    
