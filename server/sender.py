@@ -39,55 +39,21 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
     
     print(f"[+] Connection established with {client_address}")
     client_socket.settimeout(30)
+    data = None
+    is_first_video = True
     with open('./server/aes.key', 'rb') as key:
         aes_key = key.read()
     
     try:
-        # Send AES key to client
-        
-        while True:
-            data = client_socket.recv(buffer_size)
-            if not data:
-                break
-            segment_name = data.decode().strip()
-            parsed_data = parse_segment_filename(segment_name)
-            '''
-            #if not data == b"Successfully Received Data Chunk":
-                if parsed_data[0] is None:
-                    print(f"[!] Invalid segment name format: {segment_name}")
-                    client_socket.sendall(b"Invalid segment name format.")
-                    continue
-                segment_path = os.path.join(segment_dir, parsed_data[0], segment_name)
-            
-                if not os.path.exists(segment_path):
-                    print(f"[!] Segment {segment_name} not found.")
-                    client_socket.sendall(b"Segment not found.")
-                    continue
-            
-                sendtime = datetime.now()
-                total_size = os.path.getsize(segment_path)
-                with open(segment_path, 'rb') as f:
-                    while True:
-                        file_data = f.read(buffer_size)
-                        if not file_data:
-                            break
-                        client_socket.sendall(file_data)
-                    print("Segment sending completed")
-            '''
-            if parsed_data[0] is None:
-                print(f"[!] Invalid segment name format: {segment_name}")
-                client_socket.sendall(b"Invalid segment name format.")
-                continue
-            segment_path = os.path.join(segment_dir, parsed_data[0], segment_name) + '.aes'
-            
-            if not os.path.exists(segment_path):
-                print(f"[!] Segment {segment_name} not found.")
-                client_socket.sendall(b"Segment not found.")
-                continue
-            
-            sendtime = datetime.now()
-            total_size = os.path.getsize(segment_path)
-            with open(segment_path, 'rb') as f:
+        while True: 
+            if is_first_video:
+                m3u8_filename = client_socket.recv(buffer_size).decode()
+                is_first_video = False
+            else:
+                m3u8_filename = data.decode()
+            m3u8_list = m3u8_filename.split("-")
+            m3u8_path = os.path.join(segment_dir, m3u8_list[0], m3u8_filename)
+            with open(m3u8_path, 'rb') as f:
                 while True:
                     file_data = f.read(buffer_size)
                     if not file_data:
@@ -101,21 +67,84 @@ def recv_and_send(client_socket, client_address, buffer_size, segment_dir):
                         print(e)
                     finally:
                         pass
-                print("Segment sending completed")
-                client_socket.sendall(b"END")
-            
-            try:   
-                logger.log(
-                    role="server",
-                    segment_name=segment_name,
-                    send_time=sendtime,
-                    bitrate=parsed_data[2],
-                    client_addr=str(client_address[0]) + ':' + str(client_address[1])
-                )
-            except Exception as log_error:
-                print(f"[Logger] Failed to log: {log_error}")
+                print(f"'{m3u8_filename}' sending completed.")
+                client_socket.sendall(b"m3u8 end")
+
+            while True:
+                data = client_socket.recv(buffer_size)
+                if not data:
+                    break
+                if data == b"keep connecting":
+                    continue
+                if data.decode().endswith(".m3u8"):
+                    break
+                segment_name = data.decode().strip()
+                parsed_data = parse_segment_filename(segment_name)
+                '''
+                #if not data == b"Successfully Received Data Chunk":
+                    if parsed_data[0] is None:
+                        print(f"[!] Invalid segment name format: {segment_name}")
+                        client_socket.sendall(b"Invalid segment name format.")
+                        continue
+                    segment_path = os.path.join(segment_dir, parsed_data[0], segment_name)
                 
-            print(f"[+] Sent segment {segment_name} {total_size} bytes -> {client_address[0]}:{client_address[1]}")
+                    if not os.path.exists(segment_path):
+                        print(f"[!] Segment {segment_name} not found.")
+                        client_socket.sendall(b"Segment not found.")
+                        continue
+                
+                    sendtime = datetime.now()
+                    total_size = os.path.getsize(segment_path)
+                    with open(segment_path, 'rb') as f:
+                        while True:
+                            file_data = f.read(buffer_size)
+                            if not file_data:
+                                break
+                            client_socket.sendall(file_data)
+                        print("Segment sending completed")
+                '''
+                if parsed_data[0] is None:
+                    print(f"[!] Invalid segment name format: {segment_name}")
+                    client_socket.sendall(b"Invalid segment name format.")
+                    continue
+                segment_path = os.path.join(segment_dir, parsed_data[0], segment_name) + '.aes'
+                
+                if not os.path.exists(segment_path):
+                    print(f"[!] Segment {segment_name} not found.")
+                    client_socket.sendall(b"Segment not found.")
+                    continue
+                
+                sendtime = datetime.now()
+                total_size = os.path.getsize(segment_path)
+                with open(segment_path, 'rb') as f:
+                    while True:
+                        file_data = f.read(buffer_size)
+                        if not file_data:
+                            break
+                        client_socket.sendall(file_data)
+                        try:
+                            ack = client_socket.recv(3)
+                            if ack != b"ACK":
+                                raise Exception("ACK missing")
+                        except Exception as e:
+                            print(e)
+                        finally:
+                            pass
+                    print("Segment sending completed")
+                    client_socket.sendall(b"END")
+                
+                try:   
+                    logger.log(
+                        role="server",
+                        segment_name=segment_name,
+                        send_time=sendtime,
+                        bitrate=parsed_data[2],
+                        client_addr=str(client_address[0]) + ':' + str(client_address[1])
+                    )
+                except Exception as log_error:
+                    print(f"[Logger] Failed to log: {log_error}")
+                    
+                print(f"[+] Sent segment {segment_name} {total_size} bytes -> {client_address[0]}:{client_address[1]}")
     except socket.timeout:
         print(f"[!] Timeout while communicating with {client_address}.")
         try:

@@ -39,6 +39,7 @@ def segment_video(resolution_label, resolution_size, bitrate_kbps, video_name, i
     ensure_dir(output_path)
 
     ts_base = os.path.join(output_path, f"{video_name}-{resolution_label}-{bitrate_kbps}k-%04d.ts")
+    output_m3u8 = os.path.join(output_path, f"{video_name}-{resolution_label}-{bitrate_kbps}k.m3u8")
 
     pattern = os.path.join(output_path, f"{video_name}-{resolution_label}-{bitrate_kbps}k-*.ts")
     existing_segments = glob.glob(pattern)
@@ -53,10 +54,11 @@ def segment_video(resolution_label, resolution_size, bitrate_kbps, video_name, i
         "-c:v", "libx264",
         "-b:v", f"{bitrate_kbps}k",
         "-c:a", "aac",
-        "-f", "segment",
-        "-segment_time", str(duration),
-        "-reset_timestamps", "1",
-        ts_base
+        "-f", "hls",
+        "-hls_time", str(duration),
+        "-hls_list_size", "0",
+        "-hls_segment_filename", ts_base,
+        output_m3u8
     ]
 
     try:
@@ -67,6 +69,7 @@ def segment_video(resolution_label, resolution_size, bitrate_kbps, video_name, i
             stderr=subprocess.PIPE,
             text=True  
         )
+        stdout, stderr = result.communicate()
         # print(result.stdout)
     except subprocess.CalledProcessError as e:
         print("[Segmenter] ffmpeg error:")
