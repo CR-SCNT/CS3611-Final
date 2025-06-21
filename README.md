@@ -32,7 +32,7 @@ pip install -r requirements.txt
 #### VLC
 1. 前往[VLC官网](https://www.videolan.org/vlc/)下载最新版本的 VLC 播放器；
 2. 安装完成后，确保 VLC 的安装路径已添加到系统的环境变量中；
-3. 可在终端输入 `vlc -version` 来检查是否安装成功。
+3. 可在终端输入 `vlc --version` 来检查是否安装成功。
 
 ### Ubuntu / Debian
 
